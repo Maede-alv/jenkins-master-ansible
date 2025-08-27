@@ -1,0 +1,7 @@
+- name: Restart Jenkins
+  ansible.builtin.systemd:
+    name: jenkins
+    state: restarted
+    enabled: yes
+  async: 120
+  poll: 10

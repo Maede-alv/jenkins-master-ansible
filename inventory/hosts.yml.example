@@ -1,0 +1,6 @@
+all:
+  hosts:
+    jenkins_master:
+      ansible_host: "your-master-vm-ip"  # e.g., 192.168.1.100 or cloud public IP
+      ansible_user: "your-ssh-user"     # e.g., ubuntu, vagrant
+      ansible_ssh_private_key_file: "/path/to/your/private/key.pem"  # SSH key for VM

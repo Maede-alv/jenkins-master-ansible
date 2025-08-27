@@ -1,0 +1,7 @@
+inventory/hosts.yml
+vars/config.yml
+vars/secrets.yml
+*.key
+*.pem
+plugins-*
+seed-*

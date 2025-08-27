@@ -1,0 +1,32 @@
+---
+- name: Configure Jenkins master with JCasC
+  hosts: jenkins_master
+  become: true
+  pre_tasks:
+    - name: Load user config
+      ansible.builtin.include_vars:
+        file: "{{ playbook_dir }}/vars/config.yml"
+      delegate_to: localhost
+      become: false
+
+    - name: Verify plugins file exists
+      ansible.builtin.stat:
+        path: "{{ jenkins_plugins_file }}"
+      delegate_to: localhost
+      register: plugins_file_stat
+      failed_when: not plugins_file_stat.stat.exists
+      become: false
+
+    - name: Read and validate plugin list
+      ansible.builtin.set_fact:
+        jenkins_plugins: "{{ lookup('file', jenkins_plugins_file).splitlines() | select('match', '^[a-zA-Z0-9-].*:.*$') | list }}"
+      delegate_to: localhost
+      become: false
+
+    - name: Fail if no valid plugins found
+      ansible.builtin.fail:
+        msg: "No valid plugins found in {{ jenkins_plugins_file }}"
+      when: jenkins_plugins | length == 0
+
+  roles:
+    - jenkins_master

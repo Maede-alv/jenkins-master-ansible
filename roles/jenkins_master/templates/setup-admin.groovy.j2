@@ -1,0 +1,40 @@
+import jenkins.model.*
+import hudson.security.*
+import jenkins.install.InstallState
+
+def instance = Jenkins.getInstance()
+println "--> Configuring Jenkins setup and admin user"
+
+// Use variables from Ansible
+def username = "{{ jenkins_admin_username }}"
+def password = "{{ jenkins_admin_password }}"
+
+// Complete setup wizard
+if (!instance.installState.isSetupComplete()) {
+    InstallState.INITIAL_SETUP_COMPLETED.initializeState()
+    println "--> Setup wizard completed"
+}
+
+// Create or update admin user
+def hudsonRealm = new HudsonPrivateSecurityRealm(false)
+def users = hudsonRealm.getAllUsers()
+def users_s = users.collect { it.toString() }
+
+if (username in users_s) {
+    println "--> Admin user already exists - updating password"
+    def user = hudson.model.User.get(username)
+    def passwordProp = hudson.security.HudsonPrivateSecurityRealm.Details.fromPlainPassword(password)
+    user.addProperty(passwordProp)
+    user.save()
+} else {
+    println "--> Creating local admin user"
+    hudsonRealm.createAccount(username, password)
+    instance.setSecurityRealm(hudsonRealm)
+    def strategy = new FullControlOnceLoggedInAuthorizationStrategy()
+    strategy.setAllowAnonymousRead(false)
+    instance.setAuthorizationStrategy(strategy)
+}
+
+// Enable CSRF protection
+instance.setCrumbIssuer(new hudson.security.csrf.DefaultCrumbIssuer(true))
+instance.save()

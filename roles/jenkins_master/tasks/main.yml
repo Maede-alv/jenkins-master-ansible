@@ -1,0 +1,129 @@
+---
+- name: Update apt cache
+  apt:
+    update_cache: true
+    cache_valid_time: 3600
+
+- name: Install Java and Git
+  apt:
+    name:
+      - "{{ java_package }}"
+      - git
+    state: present
+    
+- name: Add Jenkins apt repository key
+  apt_key:
+    url: https://pkg.jenkins.io/debian/jenkins.io-2023.key
+    state: present
+
+- name: Add Jenkins apt repository
+  apt_repository:
+    repo: "deb https://pkg.jenkins.io/debian-stable binary/"
+    state: present
+    filename: jenkins
+    update_cache: true
+
+- name: Install Jenkins
+  apt:
+    name: "jenkins={{ jenkins_version }}"
+    state: present
+
+- name: Stop Jenkins service before cleanup
+  systemd:
+    name: jenkins
+    state: stopped
+  when: clean_jenkins_home | default(false)
+
+- name: Clean Jenkins home directory (if enabled)
+  file:
+    path: "{{ jcasc_config_dir }}"
+    state: absent
+  when: clean_jenkins_home | default(false)
+
+- name: Create Jenkins directories
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: jenkins
+    group: jenkins
+    mode: '0755'
+  loop:
+    - "{{ jcasc_config_dir }}"
+    - "{{ jcasc_config_dir }}/init.groovy.d"
+
+- name: Deploy Groovy init script for admin user
+  template:
+    src: "setup-admin.groovy.j2"
+    dest: "{{ jcasc_config_dir }}/init.groovy.d/setup-admin.groovy"
+    owner: jenkins
+    group: jenkins
+    mode: '0644'
+  notify: Restart Jenkins
+
+- name: Ensure Jenkins service is started and enabled
+  systemd:
+    name: jenkins
+    state: started
+    enabled: yes
+
+- name: Wait for Jenkins to be ready
+  wait_for:
+    host: localhost
+    port: 8080
+    delay: 10
+    timeout: 300
+
+- name: Remove config.xml to prevent setup wizard
+  file:
+    path: "{{ jcasc_config_dir }}/config.xml"
+    state: absent
+  notify: Restart Jenkins
+
+- name: Disable Jenkins setup wizard in config
+  lineinfile:
+    path: /etc/default/jenkins
+    regexp: '^JAVA_ARGS='
+    line: 'JAVA_ARGS="-Djava.awt.headless=true -Djenkins.install.runSetupWizard=false"'
+    create: yes
+  notify: Restart Jenkins
+
+- name: Set CASC_JENKINS_CONFIG environment variable
+  lineinfile:
+    path: /etc/default/jenkins
+    regexp: '^CASC_JENKINS_CONFIG='
+    line: 'CASC_JENKINS_CONFIG={{ jcasc_config_dir }}/jenkins.yaml'
+    create: true
+  notify: Restart Jenkins
+
+- name: Install Jenkins plugins
+  jenkins_plugin:
+    name: "{{ item | split(':') | first }}"
+    version: "{{ item | split(':') | last }}"
+    url: "{{ jenkins_url }}"
+    url_username: "{{ jenkins_admin_username }}"
+    url_password: "{{ jenkins_admin_password }}"
+    state: present
+    timeout: 60
+  loop: "{{ jenkins_plugins }}"
+  ignore_errors: true
+  failed_when: false
+  changed_when: "'changed' in result"
+  register: plugin_install_result
+  notify: Restart Jenkins
+
+- name: Ensure JCasC config directory exists
+  file:
+    path: "{{ jcasc_config_dir }}"
+    state: directory
+    owner: jenkins
+    group: jenkins
+    mode: '0755'
+
+- name: Deploy JCasC configuration file
+  template:
+    src: "jenkins.yaml.j2"
+    dest: "{{ jcasc_config_dir }}/jenkins.yaml"
+    owner: jenkins
+    group: jenkins
+    mode: '0644'
+  notify: Restart Jenkins
