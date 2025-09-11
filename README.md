@@ -110,7 +110,7 @@ Agents are the workers that execute your builds:
 
 ---
 
-## 🚀 Implementation: Step-by-Step Guide
+## Implementation: Step-by-Step Guide
 
 ### Prerequisites
 
