@@ -1,21 +1,6 @@
-# Building a Modern Jenkins Infrastructure with Ansible: A Complete Guide
+# Jenkins Infrastructure with Ansible
 
-*Learn how to automate Jenkins deployment using Infrastructure as Code principles, Jenkins Configuration as Code (JCasC), and Job DSL for scalable CI/CD pipelines.*
-
----
-
-## 🎯 What You'll Learn
-
-By the end of this guide, you'll understand:
-- How to implement **Infrastructure as Code** for Jenkins
-- The power of **Jenkins Configuration as Code (JCasC)** for declarative configuration
-- How **Job DSL** enables version-controlled job definitions
-- Building a **distributed Jenkins architecture** with master and agents
-- **Ansible automation** best practices for DevOps
-
----
-
-## 🏗️ The Problem: Traditional Jenkins Setup
+## Traditional Jenkins Setup:
 
 Traditional Jenkins installations often suffer from:
 - **Manual configuration** that's hard to reproduce
@@ -24,11 +9,9 @@ Traditional Jenkins installations often suffer from:
 - **No version control** for Jenkins configuration
 - **Inconsistent environments** between development and production
 
-Sound familiar? Let's solve these problems with modern DevOps practices.
-
 ---
 
-## 💡 The Solution: Infrastructure as Code for Jenkins
+## The Solution: Infrastructure as Code for Jenkins
 
 We're going to build a Jenkins infrastructure that's:
 - **Declarative**: Configuration defined in code
@@ -39,7 +22,7 @@ We're going to build a Jenkins infrastructure that's:
 
 ---
 
-## 🏛️ Architecture Deep Dive
+## Architecture Deep Dive
 
 Let's understand the architecture before diving into implementation:
 
@@ -263,10 +246,9 @@ pipelineJob('seed-job') {
 
 ---
 
-## 🔧 Hands-On Implementation
+## Hands-On Implementation
 
-### Quick Setup (5 minutes)
-
+### Quick Setup
 ```bash
 # 1. Clone the repository
 git clone https://github.com/Maede-alv/jenkins-master-ansible.git
@@ -331,8 +313,6 @@ When you run the playbook, here's what happens:
    - Enables automated job management
 
 ---
-
-## 🎓 Advanced Concepts
 
 ### Security Best Practices
 
@@ -404,48 +384,5 @@ This project is part of a larger Jenkins automation ecosystem:
 
 - **[jenkins-agent-ansible](https://github.com/Maede-alv/jenkins-agent-ansible)**: Agent deployment automation
 - **[jenkins-jobdsl](https://github.com/Maede-alv/jenkins-jobdsl)**: Job definitions as code
-
----
-
-## 🚨 Troubleshooting Guide
-
-### Common Issues and Solutions
-
-| Issue | Root Cause | Solution |
-|-------|------------|----------|
-| Jenkins won't start | Java installation or port conflict | Check Java version and port availability |
-| Plugin installation fails | Network connectivity or version conflict | Verify internet access and plugin versions |
-| Seed job fails | GitHub token permissions | Ensure token has repo access |
-| Agents can't connect | Network or authentication issues | Check firewall and agent configuration |
-
-### Debug Commands
-
-```bash
-# Check Jenkins service status
-sudo systemctl status jenkins
-
-# View Jenkins logs
-sudo journalctl -u jenkins -f
-
-# Verify Java installation
-java -version
-
-# Test GitHub connectivity
-curl -H "Authorization: token YOUR_TOKEN" https://api.github.com/user
-```
-
-## 🤝 Contributing
-
-Found a bug or have an improvement? Contributions are welcome!
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Test thoroughly
-5. Submit a pull request
-
----
-
-*Happy automating! *
 
 ---
